@@ -10,10 +10,11 @@ public class TrackResult implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 7829834915024969699L;
-	private String fileName;
-	private List<Integer> pointList;
+	private final String fileName;
+	private final List<Integer> pointList;
 	
 	public TrackResult(String fileName, List<Integer> pointList) {
+		this.fileName = fileName;
 		this.pointList = pointList;
 	}
 	
@@ -21,16 +22,8 @@ public class TrackResult implements Serializable {
 		return this.fileName;
 	}
 	
-	public void setFileName(String fileName) {
-		this.fileName = fileName;
-	}
-	
 	public List<Integer> getPointList() {
 		return this.pointList;
-	}
-	
-	public void setPointList(List<Integer> pointList) {
-		this.pointList = pointList;
 	}
 	
 	public void addPoint(Integer point) {

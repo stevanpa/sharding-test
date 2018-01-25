@@ -9,7 +9,7 @@ public class FileMessage implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 6287126993634228330L;
-	private File file;
+	private final File file;
 	
 	public FileMessage(File file) {
 		this.file = file;
@@ -17,9 +17,5 @@ public class FileMessage implements Serializable {
 	
 	public File getFile() {
 		return this.file;
-	}
-	
-	public void setFile(File file) {
-		this.file = file;
 	}
 }

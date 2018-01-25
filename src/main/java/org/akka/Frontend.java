@@ -35,6 +35,7 @@ public class Frontend extends AbstractActor {
 		
 		return receiveBuilder()
 				.match(TrackResult.class, result -> {
+					log.info("Received TrackResult for {}", result.getFileName());
 					if(result.getPointList().size() > 0) {
 						log.debug("{} points parsed {}", result.getPointList().size(), result.getPointList().toString());
 						//getContext().stop(self());
@@ -42,6 +43,9 @@ public class Frontend extends AbstractActor {
 				})
 				.match(ReceiveTimeout.class, message -> {
 					log.info("Timeout");
+				})
+				.matchAny(message -> {
+					log.info("Unmatched message {}", message.toString());
 				})
 				.build();
 	}
@@ -53,6 +57,7 @@ public class Frontend extends AbstractActor {
 			if (file.isFile()) {
 				log.info("File [{}]", file.getName());
 				FileMessage fileMessage = new FileMessage(file);
+				log.info("Backend actor name [{}]", backend.path().address().toString());
 				backend.tell(fileMessage, self());
 		    }
 		}
