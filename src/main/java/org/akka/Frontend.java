@@ -3,6 +3,7 @@ package org.akka;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import akka.actor.AbstractActor;
@@ -16,6 +17,7 @@ import scala.concurrent.duration.Duration;
 public class Frontend extends AbstractActor {
 	
 	final Path rootFolder;
+	int filesParsed = 0;
 	
 	LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 	ActorRef backend = getContext().actorOf(FromConfig.getInstance().props(), "backendRouter");
@@ -26,6 +28,7 @@ public class Frontend extends AbstractActor {
 	
 	@Override
 	public void preStart() {
+		log.info("Backend ref {}", backend.path().toString());
 		sendJobs();
 		getContext().setReceiveTimeout(Duration.create(10, TimeUnit.SECONDS));
 	}
@@ -34,12 +37,16 @@ public class Frontend extends AbstractActor {
 	public Receive createReceive() {
 		
 		return receiveBuilder()
+//				.match(TrackResult.class, result -> {
+//					log.info("Received TrackResult for {}", result.getFileName());
+//					if(result.getPointList().size() > 0) {
+//						log.debug("{} points parsed {}", result.getPointList().size(), result.getPointList().toString());
+//						//getContext().stop(self());
+//					}
+//				})
 				.match(TrackResult.class, result -> {
-					log.info("Received TrackResult for {}", result.getFileName());
-					if(result.getPointList().size() > 0) {
-						log.debug("{} points parsed {}", result.getPointList().size(), result.getPointList().toString());
-						//getContext().stop(self());
-					}
+					filesParsed++;
+					log.info("Received {} TrackResult {} with {}", filesParsed, result.getFileName(), result.getPointList());
 				})
 				.match(ReceiveTimeout.class, message -> {
 					log.info("Timeout");
@@ -51,14 +58,14 @@ public class Frontend extends AbstractActor {
 	}
 
 	private void sendJobs() {
-		log.info("Start batch of file import from [{}]", rootFolder.toString());
 		File[] files = new File(this.rootFolder.toString()).listFiles();
+		log.info("Start batch of file import from [{}] number of files {}", rootFolder.toString(), files.length);
+		log.info("Backend actor name [{}]", backend.path().toString());
 		for (File file : files) {
 			if (file.isFile()) {
-				log.info("File [{}]", file.getName());
+				//log.info("File [{}]", file.getName());
 				FileMessage fileMessage = new FileMessage(file);
-				log.info("Backend actor name [{}]", backend.path().address().toString());
-				backend.tell(fileMessage, self());
+				backend.tell(fileMessage, getSelf());
 		    }
 		}
 	}

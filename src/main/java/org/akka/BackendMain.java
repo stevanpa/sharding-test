@@ -3,6 +3,7 @@ package org.akka;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
+import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 
@@ -18,11 +19,11 @@ public class BackendMain {
 						"akka.remote.netty.tcp.port=" + port + "\n" +
 						"akka.remote.artery.canonical.port=" + port)
 				.withFallback(ConfigFactory.parseString("akka.cluster.roles = [backend]"))
-				.withFallback(ConfigFactory.load("application"));
+				.withFallback(ConfigFactory.load("backend"));
 		
 		ActorSystem system = ActorSystem.create("ClusterSystem", config);
-		system.actorOf(Props.create(Backend.class), "backend");
-		system.actorOf(Props.create(MetricsListener.class), "metricsListener");
-		
+		ActorRef backend = system.actorOf(Props.create(Backend.class), "backend");
+		ActorRef metrics = system.actorOf(Props.create(MetricsListener.class), "metricsListener");
+		//system.log().info("Created actors {} {}", backend.path().toString(), metrics.path().toString());
 	}
 }

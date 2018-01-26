@@ -18,7 +18,7 @@ public class FrontendMain {
 		
 		final Config config = 
 				ConfigFactory.parseString("akka.cluster.roles = [frontend]")
-				.withFallback(ConfigFactory.load("application"));
+				.withFallback(ConfigFactory.load("frontend"));
 		final ActorSystem system = ActorSystem.create("ClusterSystem", config);
 		system.log().info("Processing can start when 2 backend members in the cluster");
 		
