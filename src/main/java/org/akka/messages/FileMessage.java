@@ -4,11 +4,12 @@ import java.io.File;
 import java.io.Serializable;
 import java.nio.file.Path;
 
+
 public interface FileMessage {
 	
 	public static class FolderJob implements Serializable {
 		
-		private static final long serialVersionUID = 6406363107852823087L;
+		private static final long serialVersionUID = 6406363107852823088L;
 		private final Path path;
 		
 		public FolderJob(Path path) {
@@ -21,9 +22,8 @@ public interface FileMessage {
 		
 	}
 
-	public static class FileJob implements Serializable {
+	public static class FileJob {
 		
-		private static final long serialVersionUID = -3412477979368064026L;
 		private final File file;
 		
 		public FileJob(File file) {
@@ -35,9 +35,8 @@ public interface FileMessage {
 		}
 	}
 	
-	public static class FileJobResult implements Serializable {
+	public static class FileJobResult {
 		
-		private static final long serialVersionUID = 6186590637533094972L;
 		private final String fileName;
 		
 		public FileJobResult(String fileName) {
@@ -54,9 +53,8 @@ public interface FileMessage {
 		}
 	}
 	
-	public static class FileJobFailed implements Serializable {
+	public static class FileJobFailed {
 		
-		private static final long serialVersionUID = 2059404488982554451L;
 		private final String reason;
 		
 		public FileJobFailed(String reason) {

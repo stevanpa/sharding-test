@@ -10,7 +10,7 @@ import akka.cluster.ClusterEvent.UnreachableMember;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 
-public class ClusterListenerActor extends UntypedAbstractActor {
+public class ClusterListener extends UntypedAbstractActor {
 	
 	LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 	Cluster cluster = Cluster.get(getContext().system());

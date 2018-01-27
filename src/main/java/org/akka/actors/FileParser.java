@@ -7,7 +7,7 @@ import org.akka.messages.FileMessage.FileJobResult;
 import akka.actor.UntypedAbstractActor;
 import akka.cluster.Cluster;
 
-public class FileParserActor extends UntypedAbstractActor {
+public class FileParser extends UntypedAbstractActor {
 	
 	Cluster cluster = Cluster.get(getContext().system());
 

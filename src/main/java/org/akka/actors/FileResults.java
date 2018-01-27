@@ -8,13 +8,13 @@ import org.akka.messages.FileMessage.FileJobResult;
 import akka.actor.ActorRef;
 import akka.actor.UntypedAbstractActor;
 
-public class FileResultsActor extends UntypedAbstractActor {
+public class FileResults extends UntypedAbstractActor {
 
 	private final int expectedFiles;
 	private final List<String> results = new ArrayList<>();
 	private final ActorRef replyTo;
 	
-	public FileResultsActor(int expectedFiles, ActorRef replyTo) {
+	public FileResults(int expectedFiles, ActorRef replyTo) {
 		this.expectedFiles = expectedFiles;
 		this.replyTo = replyTo;
 	}

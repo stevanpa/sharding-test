@@ -41,8 +41,7 @@
 			<artifactId>akka-cluster-tools_${akka.scala.version}</artifactId>
 			<version>${akka.version}</version>
 		</dependency>
-		
-		
+
 	</dependencies>
 	
 </project>

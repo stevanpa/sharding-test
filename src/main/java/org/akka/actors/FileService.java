@@ -8,12 +8,15 @@ import org.akka.messages.FileMessage.FileJob;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.actor.UntypedAbstractActor;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
 import akka.routing.FromConfig;
 
-public class FileServiceActor extends UntypedAbstractActor {
+public class FileService extends UntypedAbstractActor {
 
+	LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 	ActorRef fileRouter = getContext().actorOf(
-		FromConfig.getInstance().props(Props.create(FileParserActor.class)),
+		FromConfig.getInstance().props(Props.create(FileParser.class)),
 		"fileRouter");
 			
 	@Override
@@ -35,7 +38,7 @@ public class FileServiceActor extends UntypedAbstractActor {
 			File[] files = folderJob.getPath().toFile().listFiles();
 			
 			ActorRef fileResults = getContext().actorOf(
-				Props.create(FileResultsActor.class, files.length, replyTo));
+				Props.create(FileResults.class, files.length, replyTo));
 			
 			for (File file : files) {
 				fileRouter.tell(new FileJob(file), fileResults);
