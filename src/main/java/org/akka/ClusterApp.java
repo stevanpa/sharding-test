@@ -1,5 +1,7 @@
 package org.akka;
 
+import org.akka.actors.ClusterListenerActor;
+
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
@@ -22,13 +24,15 @@ public class ClusterApp {
 			Config config = ConfigFactory.parseString(
 				"akka.remote.netty.tcp.port=" + port + "\n" +
 				"akka.remote.artery.canonical.port=" + port)
-			.withFallback(ConfigFactory.load());
+			.withFallback(
+				ConfigFactory.parseString("akka.cluster.roles = [compute]"))
+			.withFallback(ConfigFactory.load("file"));
 
 		// Create an Akka system
 		ActorSystem system = ActorSystem.create("ClusterSystem", config);
 
 		// Create an actor that handles cluster domain events
-		system.actorOf(Props.create(ClusterListener.class),
+		system.actorOf(Props.create(ClusterListenerActor.class),
 				"clusterListener");
 		}
 	}
