@@ -1,7 +1,5 @@
 package org.akka.actors;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -33,12 +31,12 @@ public class ClusterClient extends UntypedAbstractActor {
 	Cluster cluster = Cluster.get(getContext().system());
 	
 	private final String servicePath;
-	private final Path folderPath;
+	private final String folderPath;
 	private final Set<Address> nodes = new HashSet<Address>();
 	
 	public ClusterClient(String servicePath) {
 		this.servicePath = servicePath;
-		this.folderPath = Paths.get("/home/bender/test/Trajectory");
+		this.folderPath = "/home/bender/test/Trajectory";
 	}
 	
 	//subscribe to cluster changes
@@ -58,12 +56,12 @@ public class ClusterClient extends UntypedAbstractActor {
 		
 		if(!nodes.isEmpty()) {
 			
-			log.info(folderPath.toString());
+			log.info("Folder to pass: {}", folderPath);
 			
 			List<Address> nodesList = new ArrayList<>(nodes);
 			Address address = nodesList.get(
 					ThreadLocalRandom.current().nextInt(nodesList.size()));
-			log.info(address.toString() + servicePath);
+			log.info("Sending Folderjob to: {}", address.toString() + servicePath);
 			ActorSelection service = 
 					getContext().actorSelection(address.toString() + servicePath);
 			service.tell(new FolderJob(folderPath), getSelf());

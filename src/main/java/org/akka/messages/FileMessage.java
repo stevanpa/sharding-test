@@ -1,42 +1,41 @@
 package org.akka.messages;
 
-import java.io.File;
-import java.io.Serializable;
-import java.nio.file.Path;
-
+import scala.Serializable;
 
 public interface FileMessage {
 	
 	public static class FolderJob implements Serializable {
 		
-		private static final long serialVersionUID = 6406363107852823088L;
-		private final Path path;
+		private static final long serialVersionUID = 1L;
+		private final String path;
 		
-		public FolderJob(Path path) {
+		public FolderJob(String path) {
 			this.path = path;
 		}
 		
-		public Path getPath() {
+		public String getPath() {
 			return path;
 		}
 		
 	}
 
-	public static class FileJob {
+	public static class FileJob implements Serializable {
 		
-		private final File file;
+		private static final long serialVersionUID = 1L;
+		private final String file;
 		
-		public FileJob(File file) {
+		public FileJob(String file) {
 			this.file = file;
 		}
 		
-		public File getFile() {
+		public String getFile() {
 			return file;
 		}
 	}
 	
-	public static class FileJobResult {
+	public static class FileJobResult implements Serializable {
 		
+		private static final long serialVersionUID = 1L;
 		private final String fileName;
 		
 		public FileJobResult(String fileName) {
@@ -53,8 +52,9 @@ public interface FileMessage {
 		}
 	}
 	
-	public static class FileJobFailed {
+	public static class FileJobFailed implements Serializable {
 		
+		private static final long serialVersionUID = 1L;
 		private final String reason;
 		
 		public FileJobFailed(String reason) {
