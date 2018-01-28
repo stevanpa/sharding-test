@@ -34,8 +34,8 @@ public class ClusterApp {
 			ActorSystem system = ActorSystem.create("ClusterSystem", config);
 	
 			// Create an actor that handles cluster domain events
-			system.actorOf(Props.create(ClusterListener.class),
-					"clusterListener");
+			//system.actorOf(Props.create(ClusterListener.class),
+			//		"clusterListener");
 			
 			system.actorOf(Props.create(FileService.class),
 					"fileService");

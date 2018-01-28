@@ -22,6 +22,7 @@ import akka.cluster.ClusterEvent.ReachableMember;
 import akka.cluster.ClusterEvent.UnreachableMember;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import akka.routing.ConsistentHashingRouter.ConsistentHashableEnvelope;
 import akka.cluster.Member;
 import akka.cluster.MemberStatus;
 
@@ -42,7 +43,9 @@ public class ClusterClient extends UntypedAbstractActor {
 	//subscribe to cluster changes
 	@Override
 	public void preStart() {
+		log.info("Client Subscribing to cluster");
 	    cluster.subscribe(self(), MemberEvent.class, ReachabilityEvent.class);
+	    //sendJob();
 	}
 
 	//re-subscribe when restart
@@ -50,23 +53,24 @@ public class ClusterClient extends UntypedAbstractActor {
 	public void postStop() {
 	    cluster.unsubscribe(self());
 	}
+	
+	private void sendJob() {
+		log.info("Folder to pass: {}", folderPath);
+		
+		List<Address> nodesList = new ArrayList<>(nodes);
+		Address address = nodesList.get(
+				ThreadLocalRandom.current().nextInt(nodesList.size()));
+		log.info("Sending Folderjob to: {}", address.toString() + servicePath);
+		ActorSelection service = 
+				getContext().actorSelection(address.toString() + servicePath);
+		service.tell(new ConsistentHashableEnvelope(new FolderJob(folderPath), 
+				"someSoCalledRandomHash"), getSelf());
+	}
 		
 	@Override
 	public void onReceive(Object message) throws Throwable {
 		
-		if(!nodes.isEmpty()) {
-			
-			log.info("Folder to pass: {}", folderPath);
-			
-			List<Address> nodesList = new ArrayList<>(nodes);
-			Address address = nodesList.get(
-					ThreadLocalRandom.current().nextInt(nodesList.size()));
-			log.info("Sending Folderjob to: {}", address.toString() + servicePath);
-			ActorSelection service = 
-					getContext().actorSelection(address.toString() + servicePath);
-			service.tell(new FolderJob(folderPath), getSelf());
-		}
-		else if(message instanceof FileJobResult) {
+		if(message instanceof FileJobResult) {
 			
 			FileJobResult result = (FileJobResult) message;
 			log.info(result.toString());
@@ -79,11 +83,14 @@ public class ClusterClient extends UntypedAbstractActor {
 		else if(message instanceof CurrentClusterState) {
 			
 			CurrentClusterState cState = (CurrentClusterState) message;
+			log.info("Members before clear: {}", cState.members().mkString());
 			nodes.clear();
+			log.info("Members: {}", cState.members().mkString());
 			for (Member member : cState.getMembers()) {
 				
 				if(member.hasRole("compute") 
 				&& member.status().equals(MemberStatus.up())) {
+					log.info("Adding member: {}", member);
 					nodes.add(member.address());
 				}
 			}
@@ -92,7 +99,13 @@ public class ClusterClient extends UntypedAbstractActor {
 			
 			MemberUp mUp = (MemberUp) message;
 			if(mUp.member().hasRole("compute")) {
+				log.info("Member is Up: {}", mUp.member());
 				nodes.add(mUp.member().address());
+				log.info("Number of members: {}", nodes.size());
+				if (nodes.size() == 3) {
+					log.info("Send job");
+					sendJob();
+				}
 			}
 		}
 		else if(message instanceof MemberEvent) {
@@ -109,6 +122,7 @@ public class ClusterClient extends UntypedAbstractActor {
 			
 			ReachableMember rMember = (ReachableMember) message;
 			if(rMember.member().hasRole("compute")) {
+				log.info("Adding ReachableMember: {}", rMember.member());
 				nodes.add(rMember.member().address());
 			}
 		}

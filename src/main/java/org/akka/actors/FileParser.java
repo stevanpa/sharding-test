@@ -20,7 +20,7 @@ public class FileParser extends UntypedAbstractActor {
 
 	@Override
 	public void preStart() {
-		
+		log.info("FileParser prestart: {}", getSelf());
 	}
 	
 	@Override
@@ -35,17 +35,18 @@ public class FileParser extends UntypedAbstractActor {
 			FileJob job = (FileJob) message;
 			File file = Paths.get(job.getFile()).toFile();
 			String fileName = file.getName();
+			log.info("New FileJob Message: {}", file.getName());
 			
 			if(fileName == null) {
 				FileJobFailed failed = new FileJobFailed("fileName is NULL");
 				getSender().tell(failed, getSelf());
 			}
-			log.info("New file to parse: {}", fileName);
+			
 			FileJobResult result = new FileJobResult(fileName);
 			getSender().tell(new ConsistentHashableEnvelope(result, fileName), getSelf());
 		}
 		else {
-			log.info(message.toString());
+			log.info("FileParser has unknown Message: " + message.toString());
 			unhandled(message);
 		}
 	}
