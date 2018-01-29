@@ -12,10 +12,8 @@ import org.akka.messages.FileMessage.FolderJobResult;
 
 import akka.actor.ActorSelection;
 import akka.actor.Address;
-import akka.actor.PoisonPill;
 import akka.actor.UntypedAbstractActor;
 import akka.cluster.Cluster;
-import akka.cluster.ClusterEvent;
 import akka.cluster.ClusterEvent.CurrentClusterState;
 import akka.cluster.ClusterEvent.MemberEvent;
 import akka.cluster.ClusterEvent.MemberUp;
