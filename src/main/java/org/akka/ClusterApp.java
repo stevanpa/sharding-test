@@ -7,8 +7,11 @@ import org.akka.actors.FileService;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
+import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
 
 // mvn exec:java -Dexec.mainClass="org.akka.ClusterApp" -Dexec.args="2551"
 public class ClusterApp {
@@ -37,10 +40,13 @@ public class ClusterApp {
 			//system.actorOf(Props.create(ClusterListener.class),
 			//		"clusterListener");
 			
-			system.actorOf(Props.create(FileService.class),
-					"fileService");
-			system.actorOf(Props.create(FileParser.class),
+			ActorRef fileParser = system.actorOf(Props.create(FileParser.class),
 					"fileParser");
+			ActorRef fileService = system.actorOf(Props.create(FileService.class),
+					"fileService");
+			
+			system.log().info("fileParser Actor Reference: {}", fileParser);
+			system.log().info("fileService Actor Reference: {}", fileService);
 		}
 	}
 }

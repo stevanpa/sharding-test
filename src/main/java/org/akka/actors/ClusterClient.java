@@ -37,7 +37,8 @@ public class ClusterClient extends UntypedAbstractActor {
 	
 	public ClusterClient(String servicePath) {
 		this.servicePath = servicePath;
-		this.folderPath = "/home/bender/test/Trajectory";
+		//this.folderPath = "/home/bender/test/Trajectory";
+		this.folderPath = "C:\\Users\\pavlicics\\Desktop\\akka_test";
 	}
 	
 	//subscribe to cluster changes
