@@ -14,7 +14,7 @@ public class ClientApp {
 		
 		ActorSystem system = ActorSystem.create("ClusterSystem",
 			ConfigFactory.load("file"));
-		system.actorOf(Props.create(ClusterClient.class, "/user/fileService"),
+		system.actorOf(Props.create(ClusterClient.class, "/user/fileServiceProxy"),
 			"client");
 	}
 }

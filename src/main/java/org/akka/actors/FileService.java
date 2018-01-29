@@ -2,40 +2,31 @@ package org.akka.actors;
 
 import java.io.File;
 import java.nio.file.Paths;
-import java.util.concurrent.TimeUnit;
-
 import org.akka.messages.FileMessage.FolderJob;
 import org.akka.messages.FileMessage.FileJob;
 
 import akka.actor.ActorIdentity;
 import akka.actor.ActorRef;
-import akka.actor.ActorSelection;
-import akka.actor.Identify;
 import akka.actor.Props;
 import akka.actor.UntypedAbstractActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import akka.pattern.AskableActorSelection;
 import akka.routing.FromConfig;
-import akka.util.Timeout;
-import scala.concurrent.Future;
 import akka.routing.ConsistentHashingRouter.ConsistentHashableEnvelope;
 
 public class FileService extends UntypedAbstractActor {
 
 	LoggingAdapter log = Logging.getLogger(context().system(), this);
-//	ActorRef fileRouter = context().actorOf(
-//		FromConfig.getInstance().props(Props.create(FileParser.class)),
-//		"fileRouter");
-			
-	ActorRef fileParser = context().actorOf(Props.create(FileParser.class), "fileParser");
+	ActorRef fileRouter = context().actorOf(
+		FromConfig.getInstance().props(Props.create(FileParser.class)),
+		"fileRouter");
 	
 	@Override
 	public void preStart() {
-		log.info("Starting FileService Actor: {}", getSelf());
-		log.info("Context: {}", context());
-		log.info("Context dispatcher: {}", context().dispatcher());
-		log.info("Context system: {}", context().system());
+		log.info("FileService - Starting FileService Actor: {}", getSelf());
+		log.info("FileService - Context: {}", context());
+		log.info("FileService - Context dispatcher: {}", context().dispatcher());
+		log.info("FileService - Context system: {}", context().system());
 	}
 	
 	@Override
@@ -52,36 +43,31 @@ public class FileService extends UntypedAbstractActor {
 				ActorRef replyTo = getSender();
 				FolderJob folderJob = (FolderJob) envelope.message();
 				String folderPath = folderJob.getPath();
-				log.info("Received FolderJob: {}", folderPath);
+				log.info("FileService - Received FolderJob: {}", folderPath);
 				File[] files = Paths.get(folderPath).toFile().listFiles();
-				log.info("Number of Files: {}", files.length);
+				log.info("FileService - Number of Files: {}", files.length);
 				
 				ActorRef fileResults = context().actorOf(
 					Props.create(FileResults.class, files.length, replyTo));
 				
-//				log.info("FileRouter address: {}", fileRouter);
+				log.info("FileService - FileRouter address: {}", fileRouter);
 				for (File file : files) {
-//					log.info("Sending FileJobs to: {}", fileRouter);
-//					fileRouter.tell(
-//							new ConsistentHashableEnvelope(new FileJob(file.getPath()), file.getPath())
-//							, fileResults);
-					
-					log.info("Sending FileJobs to: {}", fileParser);
-					fileParser.tell(
+					log.info("FileService - Sending FileJobs to: {}", fileRouter);
+					fileRouter.tell(
 							new ConsistentHashableEnvelope(new FileJob(file.getPath()), file.getPath())
 							, fileResults);
 				}
 			}
 			else {
-				log.info("Unknown message in Envelpope: {}", envelope.message());
+				log.info("FileService - Unknown message in Envelpope: {}", envelope.message());
 			}
 		}
 		else if (message instanceof ActorIdentity) {
 			ActorIdentity identity = (ActorIdentity) message;
-			log.info("Identity of actor: {}", identity);
+			log.info("FileService - Identity of actor: {}", identity);
 		}
 		else {
-			log.info("FileService Received unknown message {}", message);
+			log.info("FileService - Received unknown message {}", message);
 		}
 	}
 

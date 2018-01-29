@@ -7,13 +7,14 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.akka.messages.FileMessage.FileJobFailed;
-import org.akka.messages.FileMessage.FileJobResult;
 import org.akka.messages.FileMessage.FolderJob;
+import org.akka.messages.FileMessage.FolderJobResult;
 
 import akka.actor.ActorSelection;
 import akka.actor.Address;
 import akka.actor.UntypedAbstractActor;
 import akka.cluster.Cluster;
+import akka.cluster.ClusterEvent;
 import akka.cluster.ClusterEvent.CurrentClusterState;
 import akka.cluster.ClusterEvent.MemberEvent;
 import akka.cluster.ClusterEvent.MemberUp;
@@ -44,7 +45,7 @@ public class ClusterClient extends UntypedAbstractActor {
 	//subscribe to cluster changes
 	@Override
 	public void preStart() {
-		log.info("Client Subscribing to cluster");
+		log.info("ClusterClient - Subscribing to cluster");
 	    cluster.subscribe(self(), MemberEvent.class, ReachabilityEvent.class);
 	    //sendJob();
 	}
@@ -56,7 +57,7 @@ public class ClusterClient extends UntypedAbstractActor {
 	}
 	
 	private void sendJob() {
-		log.info("Folder to pass: {}", folderPath);
+		log.info("ClusterClient - Folder to pass: {}", folderPath);
 		
 		List<Address> nodesList = new ArrayList<>(nodes);
 		Address address = nodesList.get(
@@ -71,27 +72,41 @@ public class ClusterClient extends UntypedAbstractActor {
 	@Override
 	public void onReceive(Object message) throws Throwable {
 		
-		if(message instanceof FileJobResult) {
-			
-			FileJobResult result = (FileJobResult) message;
-			log.info(result.toString());
+		if(message instanceof ConsistentHashableEnvelope) {
+			ConsistentHashableEnvelope envelope = (ConsistentHashableEnvelope) message;
+			handleEnvelope(envelope);
 		}
-		else if(message instanceof FileJobFailed) {
-			
-			FileJobFailed failed = (FileJobFailed) message;
-			log.info(failed.toString());
+		else {
+			handleOtherMessage(message);
 		}
-		else if(message instanceof CurrentClusterState) {
+	}
+	
+	private void handleEnvelope(ConsistentHashableEnvelope envelope) {
+		if(envelope.message() instanceof FolderJobResult) {
+			FolderJobResult result = (FolderJobResult) envelope.message();
+			log.info("ClusterClient - FolderJobResult: {}", result.toString());
+		}
+		else if(envelope.message() instanceof FileJobFailed) {
+			FileJobFailed failed = (FileJobFailed) envelope.message();
+			log.info("ClusterClient - FileJobFailed: {}", failed.toString());
+		}
+		else {
+			log.info("ClusterClient - received unknown ConsistentHashableEnvelope: {}", envelope.message().toString());
+		}
+	}
+	
+	private void handleOtherMessage(Object message) {
+		if(message instanceof CurrentClusterState) {
 			
 			CurrentClusterState cState = (CurrentClusterState) message;
-			log.info("Members before clear: {}", cState.members().mkString());
+			log.info("ClusterClient - Members before clear: {}", cState.members().mkString());
 			nodes.clear();
-			log.info("Members: {}", cState.members().mkString());
+			log.info("ClusterClient - Members: {}", cState.members().mkString());
 			for (Member member : cState.getMembers()) {
 				
 				if(member.hasRole("compute") 
 				&& member.status().equals(MemberStatus.up())) {
-					log.info("Adding member: {}", member);
+					log.info("ClusterClient - Adding member: {}", member);
 					nodes.add(member.address());
 				}
 			}
@@ -100,11 +115,11 @@ public class ClusterClient extends UntypedAbstractActor {
 			
 			MemberUp mUp = (MemberUp) message;
 			if(mUp.member().hasRole("compute")) {
-				log.info("Member is Up: {}", mUp.member());
+				log.info("ClusterClient - Member is Up: {}", mUp.member());
 				nodes.add(mUp.member().address());
-				log.info("Number of members: {}", nodes.size());
+				log.info("ClusterClient - Number of members: {}", nodes.size());
 				if (nodes.size() == 3) {
-					log.info("Send job");
+					log.info("ClusterClient - Send job");
 					sendJob();
 				}
 			}
@@ -123,9 +138,12 @@ public class ClusterClient extends UntypedAbstractActor {
 			
 			ReachableMember rMember = (ReachableMember) message;
 			if(rMember.member().hasRole("compute")) {
-				log.info("Adding ReachableMember: {}", rMember.member());
+				log.info("ClusterClient - Adding ReachableMember: {}", rMember.member());
 				nodes.add(rMember.member().address());
 			}
+		}
+		else {
+			log.info("ClusterClient - received unknown message: " + message.toString());
 		}
 	}
 

@@ -18,6 +18,26 @@ public interface FileMessage {
 		}
 		
 	}
+	
+	public static class FolderJobResult implements Serializable {
+		
+		private static final long serialVersionUID = 1L;
+		private final int result;
+		
+		public FolderJobResult(int result) {
+			this.result = result;
+		}
+		
+		public int getResult() {
+			return result;
+		}
+		
+		@Override
+		public String toString() {
+			return String.valueOf(result);
+		}
+		
+	}
 
 	public static class FileJob implements Serializable {
 		

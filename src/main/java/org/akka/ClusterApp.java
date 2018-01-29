@@ -1,17 +1,17 @@
 package org.akka;
 
-import org.akka.actors.ClusterListener;
-import org.akka.actors.FileParser;
 import org.akka.actors.FileService;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
-import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
+import akka.actor.PoisonPill;
 import akka.actor.Props;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
+import akka.cluster.singleton.ClusterSingletonManager;
+import akka.cluster.singleton.ClusterSingletonManagerSettings;
+import akka.cluster.singleton.ClusterSingletonProxy;
+import akka.cluster.singleton.ClusterSingletonProxySettings;
 
 // mvn exec:java -Dexec.mainClass="org.akka.ClusterApp" -Dexec.args="2551"
 public class ClusterApp {
@@ -35,18 +35,17 @@ public class ClusterApp {
 
 			// Create an Akka system
 			ActorSystem system = ActorSystem.create("ClusterSystem", config);
-	
-			// Create an actor that handles cluster domain events
-			//system.actorOf(Props.create(ClusterListener.class),
-			//		"clusterListener");
 			
-			ActorRef fileParser = system.actorOf(Props.create(FileParser.class),
-					"fileParser");
-			ActorRef fileService = system.actorOf(Props.create(FileService.class),
+			ClusterSingletonManagerSettings settings = ClusterSingletonManagerSettings.create(system)
+					.withRole("compute");
+			system.actorOf(ClusterSingletonManager.props(
+					Props.create(FileService.class), PoisonPill.getInstance(), settings),
 					"fileService");
 			
-			system.log().info("fileParser Actor Reference: {}", fileParser);
-			system.log().info("fileService Actor Reference: {}", fileService);
+			ClusterSingletonProxySettings proxySettings =
+					ClusterSingletonProxySettings.create(system).withRole("compute");
+			system.actorOf(ClusterSingletonProxy.props("/user/fileService", 
+					proxySettings), "fileServiceProxy");
 		}
 	}
 }
