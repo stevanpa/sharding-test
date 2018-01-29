@@ -12,6 +12,7 @@ import org.akka.messages.FileMessage.FolderJobResult;
 
 import akka.actor.ActorSelection;
 import akka.actor.Address;
+import akka.actor.PoisonPill;
 import akka.actor.UntypedAbstractActor;
 import akka.cluster.Cluster;
 import akka.cluster.ClusterEvent;
@@ -62,7 +63,7 @@ public class ClusterClient extends UntypedAbstractActor {
 		List<Address> nodesList = new ArrayList<>(nodes);
 		Address address = nodesList.get(
 				ThreadLocalRandom.current().nextInt(nodesList.size()));
-		log.info("Sending Folderjob to: {}", address.toString() + servicePath);
+		log.info("ClusterClient - Sending Folderjob to: {}", address.toString() + servicePath);
 		ActorSelection service = 
 				getContext().actorSelection(address.toString() + servicePath);
 		service.tell(new ConsistentHashableEnvelope(new FolderJob(folderPath), 
@@ -85,6 +86,9 @@ public class ClusterClient extends UntypedAbstractActor {
 		if(envelope.message() instanceof FolderJobResult) {
 			FolderJobResult result = (FolderJobResult) envelope.message();
 			log.info("ClusterClient - FolderJobResult: {}", result.toString());
+			
+			// Shut down the client...
+			cluster.shutdown();
 		}
 		else if(envelope.message() instanceof FileJobFailed) {
 			FileJobFailed failed = (FileJobFailed) envelope.message();

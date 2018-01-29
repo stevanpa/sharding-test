@@ -66,7 +66,7 @@ public class FileResults extends UntypedAbstractActor {
 			log.info("FileResults - Total number of Results: {}", results.size());
 			log.info("FileResults - Sending message to: {}", replyTo);
 			replyTo.tell(new ConsistentHashableEnvelope(new FolderJobResult(results.size()), "hash"), replyTo);
-			self().tell(PoisonPill.getInstance(), self());
+			self().tell(PoisonPill.getInstance(), ActorRef.noSender());
 		}
 	}
 }
